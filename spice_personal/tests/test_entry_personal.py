@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -66,6 +67,45 @@ class PersonalEntryTests(unittest.TestCase):
 
             reloaded_payload = json.loads(config_path.read_text(encoding="utf-8"))
             self.assertEqual(reloaded_payload, custom_payload)
+
+    def test_personal_ask_shows_setup_decision_card_when_openrouter_key_missing(self) -> None:
+        with tempfile.TemporaryDirectory(dir=REPO_ROOT) as tmp_dir:
+            workspace = Path(tmp_dir) / "personal_workspace"
+            init_completed = self._run_personal(
+                "init",
+                "--workspace",
+                str(workspace),
+            )
+            self.assertEqual(init_completed.returncode, 0, init_completed.stderr)
+
+            env = os.environ.copy()
+            env.pop("OPENROUTER_API_KEY", None)
+            env.pop("SPICE_PERSONAL_MODEL", None)
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "spice_personal.cli",
+                    "ask",
+                    "What should I do next?",
+                    "--workspace",
+                    str(workspace),
+                ],
+                cwd=REPO_ROOT,
+                text=True,
+                capture_output=True,
+                check=False,
+                env=env,
+            )
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertIn("Decision Card", completed.stdout)
+            self.assertIn("Setup required (no model configured)", completed.stdout)
+            self.assertIn(f"Edit {workspace / 'personal.config.json'}", completed.stdout)
+            self.assertIn(
+                'Then run: spice-personal ask "What should I do next?"',
+                completed.stdout,
+            )
 
     def test_personal_ask_auto_initializes_workspace_without_state_write(self) -> None:
         with tempfile.TemporaryDirectory(dir=REPO_ROOT) as tmp_dir:

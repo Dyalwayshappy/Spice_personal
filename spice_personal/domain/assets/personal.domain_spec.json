@@ -1,0 +1,122 @@
+{
+  "actions": [
+    {
+      "description": "Provide direct guidance based on current known context.",
+      "executor": {
+        "operation": "personal.suggest",
+        "parameters": {},
+        "type": "mock"
+      },
+      "expected_outcome_type": "personal.assistant.advice_recorded",
+      "id": "personal.assistant.suggest"
+    },
+    {
+      "description": "Ask a clarifying question before giving strong advice.",
+      "executor": {
+        "operation": "personal.ask_clarify",
+        "parameters": {},
+        "type": "mock"
+      },
+      "expected_outcome_type": "personal.assistant.advice_recorded",
+      "id": "personal.assistant.ask_clarify"
+    },
+    {
+      "description": "Recommend deferring the decision when conditions are unclear.",
+      "executor": {
+        "operation": "personal.defer",
+        "parameters": {},
+        "type": "mock"
+      },
+      "expected_outcome_type": "personal.assistant.advice_recorded",
+      "id": "personal.assistant.defer"
+    },
+    {
+      "description": "Request external evidence gathering from execution-layer tools or agents.",
+      "executor": {
+        "operation": "personal.gather_evidence",
+        "parameters": {},
+        "type": "mock"
+      },
+      "expected_outcome_type": "personal.assistant.evidence_applied",
+      "id": "personal.assistant.gather_evidence"
+    }
+  ],
+  "decision": {
+    "default_action": "personal.assistant.suggest"
+  },
+  "demo": {
+    "observations": [
+      {
+        "attributes": {
+          "confidence": 0.5,
+          "latest_question": "Should I switch jobs this year?",
+          "status": "ready",
+          "urgency": "normal"
+        },
+        "source": "personal.demo",
+        "type": "personal.assistant.question_received"
+      }
+    ]
+  },
+  "domain": {
+    "id": "personal.assistant"
+  },
+  "schema_version": "spice.domain_spec.v1",
+  "state": {
+    "entity_id": "personal.assistant.current",
+    "fields": [
+      {
+        "default": "ready",
+        "name": "status",
+        "type": "string"
+      },
+      {
+        "default": "",
+        "name": "latest_question",
+        "type": "string"
+      },
+      {
+        "default": "",
+        "name": "latest_suggestion",
+        "type": "string"
+      },
+      {
+        "default": "normal",
+        "name": "urgency",
+        "type": "string"
+      },
+      {
+        "default": 0.0,
+        "name": "confidence",
+        "type": "number"
+      },
+      {
+        "default": "",
+        "name": "last_feedback",
+        "type": "string"
+      },
+      {
+        "default": "",
+        "name": "evidence_summary",
+        "type": "string"
+      }
+    ]
+  },
+  "vocabulary": {
+    "action_types": [
+      "personal.assistant.suggest",
+      "personal.assistant.ask_clarify",
+      "personal.assistant.defer",
+      "personal.assistant.gather_evidence"
+    ],
+    "observation_types": [
+      "personal.assistant.question_received",
+      "personal.assistant.feedback_received",
+      "personal.assistant.evidence_received"
+    ],
+    "outcome_types": [
+      "personal.assistant.advice_recorded",
+      "personal.assistant.evidence_applied"
+    ]
+  }
+}

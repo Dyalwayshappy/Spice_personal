@@ -1,0 +1,53 @@
+from spice_personal.config.personal_config import (
+    PERSONAL_CONFIG_FILENAME,
+    PersonalConnectionConfig,
+    load_personal_connection_config,
+    workspace_personal_config_path,
+)
+from spice_personal.config.provider_resolver import (
+    AGENT_PROVIDER_GENERIC_CLI,
+    AGENT_PROVIDER_GENERIC_SDEP,
+    AGENT_PROVIDER_CLAUDE_CODE,
+    AGENT_PROVIDER_CODEX,
+    AGENT_PROVIDER_OPENCLAW,
+    CONNECTION_SCHEMA_VERSION_V1,
+    MODEL_PROVIDER_OPENROUTER,
+    MODEL_PROVIDER_SUBPROCESS,
+    SUPPORTED_AGENT_PROVIDERS,
+    SUPPORTED_MODEL_PROVIDERS,
+    ProviderConnectionPlan,
+    compile_provider_connection_plan,
+)
+from spice_personal.config.settings import (
+    DEFAULT_EXECUTOR_TIMEOUT_SECONDS,
+    build_executor_config_from_args,
+    build_executor_config_from_sources,
+    build_executor_config_from_env,
+    resolve_executor_config_for_runtime,
+    resolve_model_command,
+)
+
+__all__ = [
+    "PERSONAL_CONFIG_FILENAME",
+    "PersonalConnectionConfig",
+    "ProviderConnectionPlan",
+    "CONNECTION_SCHEMA_VERSION_V1",
+    "MODEL_PROVIDER_OPENROUTER",
+    "MODEL_PROVIDER_SUBPROCESS",
+    "AGENT_PROVIDER_OPENCLAW",
+    "AGENT_PROVIDER_CODEX",
+    "AGENT_PROVIDER_CLAUDE_CODE",
+    "AGENT_PROVIDER_GENERIC_SDEP",
+    "AGENT_PROVIDER_GENERIC_CLI",
+    "SUPPORTED_MODEL_PROVIDERS",
+    "SUPPORTED_AGENT_PROVIDERS",
+    "compile_provider_connection_plan",
+    "DEFAULT_EXECUTOR_TIMEOUT_SECONDS",
+    "build_executor_config_from_args",
+    "build_executor_config_from_sources",
+    "build_executor_config_from_env",
+    "load_personal_connection_config",
+    "resolve_executor_config_for_runtime",
+    "resolve_model_command",
+    "workspace_personal_config_path",
+]

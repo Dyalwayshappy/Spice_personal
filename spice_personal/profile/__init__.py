@@ -1,0 +1,51 @@
+from spice_personal.profile.contract import (
+    ALL_CATEGORIES,
+    CATEGORY_EXTERNAL_COMMUNICATE,
+    CATEGORY_EXTERNAL_EVIDENCE,
+    CATEGORY_EXTERNAL_MANAGE_TASK,
+    CATEGORY_EXTERNAL_SCHEDULE,
+    CATEGORY_EXTERNAL_SYSTEM,
+    P0_CATEGORIES,
+    P1_CATEGORIES,
+    PROFILE_DEFAULT_ID,
+    PROFILE_RELATIVE_PATH,
+    PROFILE_SCHEMA_VERSION,
+    default_profile_payload,
+    ensure_minimum_execution_brief,
+    infer_category_from_selected_action,
+)
+from spice_personal.profile.loader import (
+    ensure_workspace_profile,
+    load_profile,
+    profile_fingerprint,
+    workspace_profile_path,
+)
+from spice_personal.profile.validate import (
+    ProfileValidationIssue,
+    ProfileValidationResult,
+    validate_profile_contract,
+)
+
+__all__ = [
+    "ALL_CATEGORIES",
+    "CATEGORY_EXTERNAL_COMMUNICATE",
+    "CATEGORY_EXTERNAL_EVIDENCE",
+    "CATEGORY_EXTERNAL_MANAGE_TASK",
+    "CATEGORY_EXTERNAL_SCHEDULE",
+    "CATEGORY_EXTERNAL_SYSTEM",
+    "P0_CATEGORIES",
+    "P1_CATEGORIES",
+    "PROFILE_DEFAULT_ID",
+    "PROFILE_RELATIVE_PATH",
+    "PROFILE_SCHEMA_VERSION",
+    "ProfileValidationIssue",
+    "ProfileValidationResult",
+    "default_profile_payload",
+    "ensure_minimum_execution_brief",
+    "ensure_workspace_profile",
+    "infer_category_from_selected_action",
+    "load_profile",
+    "profile_fingerprint",
+    "validate_profile_contract",
+    "workspace_profile_path",
+]

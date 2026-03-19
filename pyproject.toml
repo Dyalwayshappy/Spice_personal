@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spice-personal"
+version = "0.1.0"
+description = "SPICE Personal reference product and CLI"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Spice Contributors" }]
+license = { text = "MIT" }
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+dependencies = ["spice-runtime>=0.1.0,<0.2.0"]
+
+[project.urls]
+Homepage = "https://github.com/Dyalwayshappy/Spice_personal"
+Repository = "https://github.com/Dyalwayshappy/Spice_personal"
+
+[project.scripts]
+spice-personal = "spice_personal.cli:main"
+spice-model-openrouter = "spice_personal.wrappers.openrouter_model:main"
+spice-agent-codex = "spice_personal.wrappers.codex_agent:main"
+spice-agent-claude-code = "spice_personal.wrappers.claude_code_agent:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["spice_personal*"]
+exclude = ["spice_personal.tests*", "tests*", "docs*", "examples*"]
+
+[tool.setuptools.package-data]
+"spice_personal.domain.assets" = ["*.json"]
+"spice_personal.profile.assets" = ["*.json"]
+
+[tool.setuptools.exclude-package-data]
+"*" = ["__pycache__/*", "*.pyc", "*.pyo", "artifacts/*", ".spice/*", "*.log"]

@@ -1,0 +1,62 @@
+{
+  "category_routes": {
+    "external.communicate": {
+      "enabled": true,
+      "operation_name": "personal.communicate",
+      "required_capabilities": [
+        "personal.communicate"
+      ],
+      "target": {
+        "id": "communication",
+        "kind": "external.service"
+      }
+    },
+    "external.evidence": {
+      "enabled": true,
+      "operation_name": "personal.gather_evidence",
+      "required_capabilities": [
+        "personal.gather_evidence"
+      ],
+      "target": {
+        "id": "research",
+        "kind": "external.service"
+      }
+    },
+    "external.manage_task": {
+      "enabled": false,
+      "operation_name": "personal.manage_task",
+      "required_capabilities": [
+        "personal.manage_task"
+      ],
+      "target": {
+        "id": "task_manager",
+        "kind": "external.service"
+      }
+    },
+    "external.schedule": {
+      "enabled": true,
+      "operation_name": "personal.schedule",
+      "required_capabilities": [
+        "personal.schedule"
+      ],
+      "target": {
+        "id": "calendar",
+        "kind": "external.service"
+      }
+    },
+    "external.system": {
+      "enabled": true,
+      "operation_name": "personal.system",
+      "required_capabilities": [
+        "personal.system"
+      ],
+      "target": {
+        "id": "system",
+        "kind": "external.service"
+      }
+    }
+  },
+  "executor_mode": "mock",
+  "profile_id": "personal.default.v1",
+  "schema_version": "spice_personal.profile.v1"
+}

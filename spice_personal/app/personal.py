@@ -98,6 +98,7 @@ EVIDENCE_STATE_EXTERNAL_EXECUTION = "external_execution"
 RESULT_KIND_SETUP_REQUIRED = "setup_required"
 CONNECTION_STATE_READY = "ready"
 CONNECTION_STATE_SETUP_REQUIRED = "setup_required"
+MAX_CLARIFY_ROUNDS = 3
 MAX_CONTEXT_TEXT_CHARS = 50 * 1024
 MAX_CONTEXT_FILE_BYTES = 256 * 1024
 MAX_CONTEXT_CONTENT_CHARS = 50 * 1024
@@ -819,6 +820,11 @@ def _run_advisory_turn(
     metadata = {"mode": "personal_advisor"}
     if model:
         metadata["model_override"] = model
+    previous_entity = _current_personal_entity(runtime.state_store.get_state())
+    previous_clarify_round_count = max(
+        0,
+        _as_int(previous_entity.get("clarify_round_count"), 0),
+    )
 
     question_attributes = {
         "status": "ready",
@@ -939,6 +945,12 @@ def _run_advisory_turn(
     elif evidence_state == EVIDENCE_STATE_AWAITING_MANUAL_INPUT:
         decision_adoption_status = ADOPTION_STATUS_PENDING
         _set_pending_evidence_decision_attributes(final_decision)
+    clarify_round_count = _next_clarify_round_count(
+        previous_count=previous_clarify_round_count,
+        advice=advice,
+        result_kind=result_kind,
+        decision_adoption_status=decision_adoption_status,
+    )
 
     execution_status = EXECUTION_STATUS_NOT_REQUESTED
     execution_intent: ExecutionIntent | None = None
@@ -968,6 +980,8 @@ def _run_advisory_turn(
         "decision_adoption_status": decision_adoption_status,
         "execution_status": execution_status,
         "evidence_state": evidence_state,
+        "clarify_round_count": clarify_round_count,
+        "clarify_round_limit": MAX_CLARIFY_ROUNDS,
     }
     if isinstance(execution_debug, dict) and execution_debug:
         orchestration_metadata["execution_debug"] = dict(execution_debug)
@@ -1599,7 +1613,7 @@ def _render_suggest_decision_report(
         if not recommendation_reason:
             recommendation_reason = _user_visible_text(recommended_option.get("suggestion_text"))
         if recommendation_reason:
-            lines.append(f"当前推荐成立的核心原因：{recommendation_reason}")
+            lines.append(f"Core reason this recommendation holds: {recommendation_reason}")
         change_mind = _user_visible_text(
             recommended_option.get("what_would_change_my_mind")
         )
@@ -1610,7 +1624,7 @@ def _render_suggest_decision_report(
         if not change_mind:
             change_mind = _user_visible_text(attributes.get("change_mind_condition"))
         if change_mind:
-            lines.append(f"如果出现以下变化，我会改判：{change_mind}")
+            lines.append(f"What would change this recommendation: {change_mind}")
     return "\n".join(lines)
 
 
@@ -1625,23 +1639,23 @@ def _option_content_segments(option: dict[str, Any]) -> list[str]:
 
     benefits = _joined_natural_list(option.get("benefits"))
     if benefits:
-        segments.append(f"它的主要收益在于：{benefits}")
+        segments.append(f"Primary benefits: {benefits}")
     risks = _joined_natural_list(option.get("risks"))
     if risks:
-        segments.append(f"你需要承担的风险是：{risks}")
+        segments.append(f"Key risks: {risks}")
     assumptions = _joined_natural_list(option.get("key_assumptions"))
     if assumptions:
-        segments.append(f"这个判断依赖的前提是：{assumptions}")
+        segments.append(f"Key assumptions: {assumptions}")
 
     first_step = _user_visible_text(option.get("first_step_24h"))
     if first_step:
-        segments.append(f"接下来24小时建议先：{first_step}")
+        segments.append(f"Suggested first step in 24h: {first_step}")
     stop_loss = _user_visible_text(option.get("stop_loss_trigger"))
     if stop_loss:
-        segments.append(f"若出现这个信号应及时止损：{stop_loss}")
+        segments.append(f"Stop-loss trigger: {stop_loss}")
     change_mind = _user_visible_text(option.get("change_mind_condition"))
     if change_mind:
-        segments.append(f"若条件反转可改判：{change_mind}")
+        segments.append(f"Change-mind condition: {change_mind}")
 
     deduped: list[str] = []
     seen: set[str] = set()
@@ -1813,9 +1827,13 @@ def _render_structured_decision_brain_report(
     if recommended_label:
         lines.append(f"★ {recommended_label}")
     if recommendation_reason:
-        lines.append(f"当前推荐成立的核心原因：{_user_visible_text(recommendation_reason)}")
+        lines.append(
+            f"Core reason this recommendation holds: {_user_visible_text(recommendation_reason)}"
+        )
     if change_mind:
-        lines.append(f"如果出现以下变化，我会改判：{_user_visible_text(change_mind)}")
+        lines.append(
+            f"What would change this recommendation: {_user_visible_text(change_mind)}"
+        )
     return "\n".join(lines)
 
 
@@ -1910,6 +1928,23 @@ def _resolve_evidence_state(
             return EVIDENCE_STATE_REEVALUATED
         return EVIDENCE_STATE_AWAITING_MANUAL_INPUT
     return EVIDENCE_STATE_EXTERNAL_EXECUTION
+
+
+def _next_clarify_round_count(
+    *,
+    previous_count: int,
+    advice: PersonalAdvice,
+    result_kind: str,
+    decision_adoption_status: str,
+) -> int:
+    current = max(0, previous_count)
+    if result_kind != RESULT_KIND_SUGGESTION:
+        return 0
+    if advice.selected_action == PERSONAL_ACTION_ASK_CLARIFY:
+        if decision_adoption_status == ADOPTION_STATUS_ADOPTED:
+            return min(MAX_CLARIFY_ROUNDS, current + 1)
+        return current
+    return 0
 
 
 def _set_pending_evidence_decision_attributes(decision: Decision) -> None:
@@ -2986,6 +3021,14 @@ def _choice_state_patch(orchestration_metadata: dict[str, Any] | None) -> dict[s
         "evidence_state",
         EVIDENCE_STATE_NOT_REQUESTED,
     )
+    clarify_round_count = max(
+        0,
+        _as_int(orchestration_metadata.get("clarify_round_count"), 0),
+    )
+    clarify_round_limit = max(
+        1,
+        _as_int(orchestration_metadata.get("clarify_round_limit"), MAX_CLARIFY_ROUNDS),
+    )
     feedback_payload = {
         "latest_result_kind": result_kind,
         "latest_decision_adoption_status": decision_adoption_status,
@@ -2999,6 +3042,8 @@ def _choice_state_patch(orchestration_metadata: dict[str, Any] | None) -> dict[s
             ensure_ascii=True,
             sort_keys=True,
         ),
+        "clarify_round_count": clarify_round_count,
+        "clarify_round_limit": clarify_round_limit,
     }
 
 

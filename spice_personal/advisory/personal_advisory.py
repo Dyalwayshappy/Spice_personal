@@ -96,6 +96,7 @@ ACTION_ENTRY_MIN_CONFIDENCE = {
     PERSONAL_ACTION_GATHER_EVIDENCE: 0.35,
     PERSONAL_ACTION_DEFER: 0.25,
 }
+PERSONAL_CLARIFY_ROUND_LIMIT = 3
 ACTION_ENTRY_MAX_CONFIDENCE = {
     PERSONAL_ACTION_ASK_CLARIFY: 0.92,
     PERSONAL_ACTION_GATHER_EVIDENCE: 0.88,
@@ -618,6 +619,15 @@ class PersonalLLMDecisionPolicy(DecisionPolicy):
         advisory_by_candidate_id: dict[str, dict[str, Any]] = {}
         artifact_by_candidate_id: dict[str, dict[str, Any]] = {}
         latest_question = _state_latest_question(self._last_state)
+        personal_entity = _state_personal_entity(self._last_state)
+        clarify_round_count = max(
+            0,
+            _as_int(personal_entity.get("clarify_round_count"), 0),
+        )
+        clarify_round_limit = max(
+            1,
+            _as_int(personal_entity.get("clarify_round_limit"), PERSONAL_CLARIFY_ROUND_LIMIT),
+        )
 
         for candidate in simulation_candidates:
             seed_decision = self._seed_decision_for_candidate(candidate)
@@ -673,6 +683,8 @@ class PersonalLLMDecisionPolicy(DecisionPolicy):
                 action=selected_action,
                 advisory=advisory,
                 question=latest_question,
+                clarify_round_count=clarify_round_count,
+                clarify_round_limit=clarify_round_limit,
             )
             advisory["action_entry_assessment"] = entry_assessment
             decision_options.append(
@@ -1226,6 +1238,11 @@ def _build_question_context_for_model(state: WorldState | None) -> dict[str, Any
     if not latest_question:
         return {}
     evidence_summary = _as_text(entity.get("evidence_summary"))
+    clarify_round_count = max(0, _as_int(entity.get("clarify_round_count"), 0))
+    clarify_round_limit = max(
+        1,
+        _as_int(entity.get("clarify_round_limit"), PERSONAL_CLARIFY_ROUND_LIMIT),
+    )
     profile = _build_question_profile(latest_question)
     complete_context = _question_profile_is_complete(profile)
     entity_snapshot = {
@@ -1234,16 +1251,23 @@ def _build_question_context_for_model(state: WorldState | None) -> dict[str, Any
         "urgency": _as_text(entity.get("urgency")),
         "confidence": _as_float(entity.get("confidence"), 0.0),
         "evidence_summary": evidence_summary,
+        "clarify_round_count": clarify_round_count,
+        "clarify_round_limit": clarify_round_limit,
     }
+    clarify_limit_reached = clarify_round_count >= clarify_round_limit
     return {
         "latest_question": latest_question,
         "question_profile": profile,
         "personal_entity": entity_snapshot,
         "decision_readiness": "high" if complete_context else "partial",
         "action_bias": (
-            "prefer personal.assistant.suggest unless high-impact slots are missing"
-            if complete_context
-            else "ask_clarify or gather_evidence only when missing slots materially change ranking"
+            "clarify round limit reached; provide a concrete recommendation now"
+            if clarify_limit_reached
+            else (
+                "prefer personal.assistant.suggest unless high-impact slots are missing"
+                if complete_context
+                else "ask_clarify or gather_evidence only when missing slots materially change ranking"
+            )
         ),
     }
 
@@ -1894,6 +1918,8 @@ def _evaluate_action_entry_assessment(
     action: str,
     advisory: dict[str, Any],
     question: str,
+    clarify_round_count: int = 0,
+    clarify_round_limit: int = PERSONAL_CLARIFY_ROUND_LIMIT,
 ) -> dict[str, Any]:
     normalized_action = _as_text(action)
     reasons: list[str] = []
@@ -1924,6 +1950,8 @@ def _evaluate_action_entry_assessment(
         )
         reasons.extend(generic_reasons)
     elif normalized_action == PERSONAL_ACTION_ASK_CLARIFY:
+        if clarify_round_count >= max(1, clarify_round_limit):
+            reasons.append("clarify_round_limit_reached")
         if not _clarifying_contract_complete(advisory):
             reasons.append("clarifying_questions_incomplete")
         if complete_context and not _question_indicates_explicit_uncertainty(question):

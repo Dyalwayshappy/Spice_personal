@@ -27,8 +27,6 @@ It helps you think through decisions — and optionally take action via external
 **Install from source (latest features, for development)**
 
 ```bash
-## Install from source (latest features, for development)
-
 # Clone both repos (Spice Personal depends on spice-runtime)
 git clone https://github.com/Dyalwayshappy/Spice.git
 git clone https://github.com/Dyalwayshappy/Spice_personal.git

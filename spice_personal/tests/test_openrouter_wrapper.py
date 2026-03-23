@@ -129,21 +129,21 @@ class OpenRouterWrapperTests(unittest.TestCase):
             )
             self.assertEqual(init_completed.returncode, 0, init_completed.stderr)
 
-            config_payload = {
-                "schema_version": "spice_personal.connection.v1",
-                "model": {
-                    "provider": "openrouter",
-                    "model": OPENROUTER_MODEL_ID,
-                    "api_key_env": "OPENROUTER_API_KEY",
-                },
-            }
-            config_path = workspace / "personal.config.json"
-            config_path.write_text(
-                json.dumps(config_payload, ensure_ascii=True, indent=2, sort_keys=True) + "\n",
-                encoding="utf-8",
-            )
-
             with _MockOpenRouterServer(_personal_ask_openrouter_responder) as server:
+                config_payload = {
+                    "schema_version": "spice_personal.connection.v1",
+                    "model": {
+                        "provider": "openrouter",
+                        "model": OPENROUTER_MODEL_ID,
+                        "api_key_env": "OPENROUTER_API_KEY",
+                        "base_url": server.base_url,
+                    },
+                }
+                config_path = workspace / "personal.config.json"
+                config_path.write_text(
+                    json.dumps(config_payload, ensure_ascii=True, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8",
+                )
                 completed = self._run_personal(
                     "ask",
                     "What should I do next?",
@@ -152,7 +152,6 @@ class OpenRouterWrapperTests(unittest.TestCase):
                     "--verbose",
                     env_overrides={
                         "OPENROUTER_API_KEY": "test-openrouter-key",
-                        "SPICE_MODEL_OPENROUTER_BASE_URL": server.base_url,
                     },
                 )
 

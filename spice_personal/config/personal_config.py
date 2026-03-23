@@ -21,6 +21,7 @@ class PersonalConnectionConfig:
     model_provider: str | None = None
     model_name: str | None = None
     model_api_key_env: str | None = None
+    model_base_url: str | None = None
     model_command: str | None = None
     model_command_source: str = ""
     agent_provider: str | None = None
@@ -97,6 +98,7 @@ def load_personal_connection_config(workspace: Path) -> PersonalConnectionConfig
         model_provider=provider_plan.model_provider,
         model_name=provider_plan.model_name,
         model_api_key_env=provider_plan.model_api_key_env,
+        model_base_url=provider_plan.model_base_url,
         model_command=model_command,
         model_command_source=model_command_source,
         agent_provider=provider_plan.agent_provider,

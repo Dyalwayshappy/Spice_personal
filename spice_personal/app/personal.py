@@ -215,6 +215,7 @@ def _default_personal_connection_template() -> dict[str, Any]:
         "schema_version": "spice_personal.connection.v1",
         "model": {
             "api_key_env": "OPENROUTER_API_KEY",
+            "base_url": "",
             "model": "anthropic/claude-opus-4-5",
             "provider": "openrouter",
         },
@@ -3220,6 +3221,7 @@ def _write_connection_resolution_report(
             "provider": _as_text(getattr(workspace_config, "model_provider", "")),
             "model": _as_text(getattr(workspace_config, "model_name", "")),
             "api_key_env": _as_text(getattr(workspace_config, "model_api_key_env", "")),
+            "base_url": _as_text(getattr(workspace_config, "model_base_url", "")),
         },
         "executor": {
             "mode": _as_text(executor_config.mode),

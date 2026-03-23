@@ -28,6 +28,7 @@ class PersonalConnectionConfigTests(unittest.TestCase):
                         "provider": "openrouter",
                         "model": "anthropic/claude-opus-4-5",
                         "api_key_env": "OPENROUTER_API_KEY",
+                        "base_url": "http://127.0.0.1:8317/v1",
                     },
                 },
             )
@@ -37,12 +38,15 @@ class PersonalConnectionConfigTests(unittest.TestCase):
             self.assertEqual(config.model_provider, "openrouter")
             self.assertEqual(config.model_name, "anthropic/claude-opus-4-5")
             self.assertEqual(config.model_api_key_env, "OPENROUTER_API_KEY")
+            self.assertEqual(config.model_base_url, "http://127.0.0.1:8317/v1")
             self.assertIsNotNone(config.model_command)
             self.assertIn("spice_personal.wrappers.openrouter_model", config.model_command or "")
             self.assertIn("--model", config.model_command or "")
             self.assertIn("anthropic/claude-opus-4-5", config.model_command or "")
             self.assertIn("--api-key-env", config.model_command or "")
             self.assertIn("OPENROUTER_API_KEY", config.model_command or "")
+            self.assertIn("--base-url", config.model_command or "")
+            self.assertIn("http://127.0.0.1:8317/v1", config.model_command or "")
             self.assertEqual(config.model_command_source, "provider")
 
     def test_provider_style_agent_config_compiles_to_internal_sdep_plan(self) -> None:

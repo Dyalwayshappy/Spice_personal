@@ -112,6 +112,20 @@ Edit the generated config file:
 
 Configure your model provider (e.g. OpenRouter) and set your API key:
 
+```json
+{
+  "schema_version": "spice_personal.connection.v1",
+  "model": {
+    "provider": "openrouter",
+    "model": "gpt-5.4",
+    "api_key_env": "OPENROUTER_API_KEY",
+    "base_url": "http://127.0.0.1:8317/v1"
+  }
+}
+```
+
+`base_url` is optional. Leave it empty to use the provider default endpoint, or set it to your relay/proxy endpoint.
+
 ```bash
 export OPENROUTER_API_KEY=...
 ```

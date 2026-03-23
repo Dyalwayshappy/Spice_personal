@@ -33,6 +33,7 @@ class ProviderConnectionPlan:
     model_provider: str | None = None
     model_name: str | None = None
     model_api_key_env: str | None = None
+    model_base_url: str | None = None
     model_command: str | None = None
     model_command_source: str = ""
     agent_provider: str | None = None
@@ -58,23 +59,30 @@ def compile_provider_connection_plan(payload: dict[str, Any]) -> ProviderConnect
     model_provider = _as_token(_read_field(model_payload, "provider"))
     model_name = _as_token(_read_field(model_payload, "model"))
     model_api_key_env = _as_token(_read_field(model_payload, "api_key_env"))
+    model_base_url = _as_token(_read_field(model_payload, "base_url"))
 
     model_command: str | None = None
     if model_provider == MODEL_PROVIDER_OPENROUTER:
         if model_name:
             env_name = model_api_key_env or "OPENROUTER_API_KEY"
             model_api_key_env = env_name
-            model_command = _join_command(
-                [
-                    sys.executable,
-                    "-m",
-                    "spice_personal.wrappers.openrouter_model",
-                    "--model",
-                    model_name,
-                    "--api-key-env",
-                    env_name,
-                ]
-            )
+            model_command_parts = [
+                sys.executable,
+                "-m",
+                "spice_personal.wrappers.openrouter_model",
+                "--model",
+                model_name,
+                "--api-key-env",
+                env_name,
+            ]
+            if model_base_url:
+                model_command_parts.extend(
+                    [
+                        "--base-url",
+                        model_base_url,
+                    ]
+                )
+            model_command = _join_command(model_command_parts)
     elif model_provider == MODEL_PROVIDER_SUBPROCESS:
         model_command = _as_token(_read_field(model_payload, "provider_command"))
 
@@ -149,6 +157,7 @@ def compile_provider_connection_plan(payload: dict[str, Any]) -> ProviderConnect
         model_provider=model_provider,
         model_name=model_name,
         model_api_key_env=model_api_key_env,
+        model_base_url=model_base_url,
         model_command=model_command,
         model_command_source=model_source,
         agent_provider=agent_provider,

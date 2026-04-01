@@ -15,7 +15,7 @@ import json
 import os
 import re
 from dataclasses import dataclass, field, replace
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -2687,7 +2687,7 @@ def _maybe_write_model_debug_artifact(
     if os.environ.get(PERSONAL_DEBUG_MODEL_IO_ENV) != "1":
         return
 
-    timestamp = datetime.utcnow()
+    timestamp = datetime.now(timezone.utc)
     stdout, stderr = _extract_model_io_for_debug(exc=exc, adapter=adapter)
     payload = {
         "timestamp": timestamp.isoformat(timespec="microseconds") + "Z",

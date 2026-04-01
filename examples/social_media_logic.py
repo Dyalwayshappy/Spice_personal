@@ -1,7 +1,26 @@
 # Spice Flagship Demo: Social Media Integration
-# TODO: Implement a logic to check post length for Twitter
 
-def check_post_length(content: str):
-    # I am not sure how to implement the character limit logic here
-    # Please help me complete this and add a test case.
-    pass
+TWITTER_CHAR_LIMIT = 280
+
+
+def check_post_length(content: str) -> dict:
+    """Check whether a post fits within Twitter's 280-character limit.
+
+    Args:
+        content: The text content of the post.
+
+    Returns:
+        A dict with keys:
+            - valid (bool): True if content is within the limit.
+            - length (int): Actual character count.
+            - limit (int): Platform character limit.
+            - remaining (int): Characters remaining (negative if over limit).
+    """
+    length = len(content)
+    remaining = TWITTER_CHAR_LIMIT - length
+    return {
+        "valid": length <= TWITTER_CHAR_LIMIT,
+        "length": length,
+        "limit": TWITTER_CHAR_LIMIT,
+        "remaining": remaining,
+    }

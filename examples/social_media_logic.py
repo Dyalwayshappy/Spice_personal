@@ -3,5 +3,11 @@
 # The function check_tweet should return a dictionary with keys: 
 # 'is_valid', 'length', and 'remaining'.
 
-def check_tweet(text: str):
-    pass
+def check_tweet(text: str) -> dict:
+    MAX_LENGTH = 280
+    length = len(text)
+    return {
+        "is_valid": length <= MAX_LENGTH,
+        "length": length,
+        "remaining": MAX_LENGTH - length,
+    }
